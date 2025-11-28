@@ -11,7 +11,7 @@ function App() {
           <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="discoveree-logo">
-                <img src="../DiscoverEE_Logo_Black_Red.svg.png" alt="DiscoverEE" className="discoveree-logo-img" />
+                <img src="/logo" alt="DiscoverEE" className="discoveree-logo-img" />
               </div>
               <nav className="hidden lg:flex gap-6 text-sm text-gray-700">
                 <a href="#">Transistors</a>
