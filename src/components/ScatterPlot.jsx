@@ -2,12 +2,12 @@ import { useMemo } from 'react';
 import Plot from 'react-plotly.js';
 import { useStore } from '../store/useStore';
 
-// Color palette for manufacturers
+// Color palette for manufacturers (vibrant, alternating hues)
 const MANUFACTURER_COLORS = [
-  '#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6',
-  '#1abc9c', '#e67e22', '#34495e', '#c0392b', '#2980b9',
-  '#27ae60', '#f1c40f', '#8e44ad', '#16a085', '#d35400',
-  '#2c3e50', '#e84393', '#00b894', '#0984e3', '#6c5ce7'
+  '#c0392b', '#e74c3c', '#2980b9', '#3498db', '#27ae60',
+  '#2ecc71', '#f39c12', '#f1c40f', '#8e44ad', '#9b59b6',
+  '#16a085', '#1abc9c', '#d35400', '#e67e22', '#34495e',
+  '#6c5ce7', '#e84393', '#00b894', '#0984e3', '#b2bec3'
 ];
 
 export function ScatterPlot() {
@@ -23,8 +23,8 @@ export function ScatterPlot() {
   const manufacturers = getManufacturers();
 
   const axisLabels = {
-    vds: 'VDS (V)',
-    rdsontyp10vgs25ta: 'RDS(on) (Ω)',
+    vds: 'Breakdown Voltage(V)',
+    rdsontyp10vgs25ta: 'On-Resistance(ohm)',
     rthja: 'RTHJA (°C/W)',
     cisstyp: 'CISS (pF)'
   };
@@ -59,7 +59,7 @@ export function ScatterPlot() {
         }
       });
       
-      if (xData.length > 0) {
+        if (xData.length > 0) {
         traces.push({
           x: xData,
           y: yData,
@@ -67,16 +67,19 @@ export function ScatterPlot() {
           type: 'scatter',
           name: `Manf-${idx + 1}`,
           text: textData,
-          hovertemplate: '%{text}<br>' + axisLabels[chartXAxis] + ': %{x}<br>' + axisLabels[chartYAxis] + ': %{y}<extra></extra>',
+          hovertemplate: '%{text}<br>' + axisLabels[chartXAxis] + ': %{x:.0f} V<br>' + axisLabels[chartYAxis] + ': %{y:.3e} Ω<extra></extra>',
+          hoverlabel: { bgcolor: 'rgba(255,255,255,0.96)', bordercolor: '#d1d5db', font: { size: 13, color: '#111827' } },
           marker: {
-            size: 6,
+            size: 8,
             color: manfColorMap[manf],
+            symbol: 'circle-open',
             line: {
               color: manfColorMap[manf],
-              width: 1
+              width: 1.6
             },
-            opacity: 0.8
-          }
+            opacity: 0.95
+          },
+          hoverinfo: 'text'
         });
       }
     });
@@ -87,35 +90,72 @@ export function ScatterPlot() {
   const layout = {
     title: {
       text: `Select & Compare Products (Count: ${devices.length}) - Powered by DiscoverEE`,
-      font: { size: 14, weight: 'bold' }
+      font: { size: 15, family: 'Helvetica, Arial, sans-serif', weight: 'bold' },
+      x: 0.5,
+      xanchor: 'center',
+      // nudge title slightly upward for better balance with legend
+      y: 1.06,
+      yanchor: 'top'
     },
     xaxis: {
-      title: axisLabels[chartXAxis],
+      title: {
+        text: axisLabels[chartXAxis],
+        font: { size: 13, color: '#374151', family: 'Helvetica, Arial, sans-serif' },
+        standoff: 10
+      },
       type: 'linear',
       showgrid: true,
-      gridcolor: '#e0e0e0'
+      gridcolor: '#e6e6e6',
+      gridwidth: 1,
+      tickfont: { size: 11, family: 'Helvetica, Arial, sans-serif' },
+      tickformat: '.0f'
     },
     yaxis: {
-      title: axisLabels[chartYAxis],
+      title: {
+        text: axisLabels[chartYAxis],
+        font: { size: 13, color: '#374151', family: 'Helvetica, Arial, sans-serif' },
+        standoff: 40
+      },
       type: displayType === 'log' ? 'log' : 'linear',
       showgrid: true,
-      gridcolor: '#e0e0e0'
+      gridcolor: '#e6e6e6',
+      gridwidth: 1,
+      tickfont: { size: 11, family: 'Helvetica, Arial, sans-serif' },
+      exponentformat: 'e',
+      tickformat: displayType === 'log' ? '.0e' : undefined,
+      automargin: true,
+      minor: { ticklen: 4, gridcolor: '#f6f6f6', gridwidth: 0.5 }
     },
     hovermode: 'closest',
+    // enable Plotly's built-in legend (restore original in-plot legend positioning)
     showlegend: true,
     legend: {
       orientation: 'h',
-      y: 1.15,
-      x: 0,
-      xanchor: 'left',
-      bgcolor: 'rgba(255,255,255,0.8)',
-      bordercolor: '#ccc',
-      borderwidth: 1
+      // anchor legend by its bottom and nudge it slightly above the plot area
+      y: 1.01,
+      yanchor: 'bottom',
+      x: 0.5,
+      xanchor: 'center',
+      bgcolor: 'rgba(255,255,255,0.95)',
+      bordercolor: '#e5e7eb',
+      borderwidth: 1,
+      traceorder: 'normal',
+      font: { size: 11, family: 'Helvetica, Arial, sans-serif' },
+      itemclick: 'toggleothers',
+      itemdoubleclick: 'toggle'
     },
-    margin: { l: 80, r: 40, t: 100, b: 70 },
+    shapes: [
+      // vertical baseline at x = 0
+      { type: 'line', x0: 0, x1: 0, y0: 0, y1: 1, yref: 'paper', line: { color: '#111111', width: 2 } }
+    ],
+    // increase top margin slightly so legend sits above the plot without overlapping
+    margin: { l: 80, r: 40, t: 130, b: 50 },
+    // set a larger fixed height so the chart occupies more vertical space like the original
+    height: 820,
     plot_bgcolor: 'white',
     paper_bgcolor: 'white',
-    font: { size: 11 }
+    font: { size: 11, family: 'Helvetica, Arial, sans-serif' },
+    hoverlabel: { bgcolor: 'rgba(255,255,255,0.96)', bordercolor: '#d1d5db', font: { family: 'Helvetica, Arial, sans-serif', color: '#111827', size: 13 } }
   };
 
   const config = {
@@ -132,18 +172,18 @@ export function ScatterPlot() {
   };
 
   return (
-    <div className="bg-white border border-gray-300 rounded shadow-sm p-3">
+  <div className="bg-white border border-gray-300 rounded shadow-sm py-2 px-3">
       {plotData.length > 0 ? (
         <div>
           <Plot
             data={plotData}
             layout={layout}
             config={config}
-            style={{ width: '100%', height: '600px' }}
+            style={{ width: '100%', height: '820px' }}
             useResizeHandler={true}
           />
 
-          <div className="mt-4 pt-3 border-t border-gray-300">
+          <div style={{ display: 'none' }} className="mt-4 pt-3 border-t border-gray-300">
             <h3 className="text-sm font-bold mb-2 text-gray-800">Manufacturers ({manufacturers.length})</h3>
             <div className="grid grid-cols-5 gap-x-6 gap-y-0.5 text-xs text-gray-700">
               {manufacturers.map(manf => (

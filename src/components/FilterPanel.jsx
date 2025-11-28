@@ -1,4 +1,6 @@
+import React, { useEffect, useState, useRef } from 'react';
 import { useStore } from '../store/useStore';
+import MultiSelect from './MultiSelect';
 
 export function FilterPanel() {
   const {
@@ -26,6 +28,77 @@ export function FilterPanel() {
   const partStatuses = getPartStatuses();
   const filteredCount = getFilteredDevices().length;
 
+  // Local UI state - user edits go here until they press Update
+  const [localFilters, setLocalFilters] = useState(filters);
+
+  // Ensure default 'all selected' behavior on first mount when store filters are empty
+  const didInitDefaults = useRef(false);
+  useEffect(() => {
+    if (didInitDefaults.current) return;
+    // Only initialize defaults when store filters are empty (user hasn't customized yet)
+    const shouldInit = (
+      (!filters.manufacturers || filters.manufacturers.length === 0) &&
+      (!filters.industryPackage || filters.industryPackage.length === 0) &&
+      (!filters.discovereePackage || filters.discovereePackage.length === 0) &&
+      (!filters.configuration || filters.configuration.length === 0) &&
+      (!filters.material || filters.material.length === 0) &&
+      (!filters.mounting || filters.mounting.length === 0) &&
+      (!filters.partStatus || filters.partStatus.length === 0) &&
+      (!filters.qualification || filters.qualification.length === 0)
+    );
+
+    if (shouldInit) {
+      setLocalFilters(prev => ({
+        ...prev,
+        manufacturers: manufacturers.slice(),
+        industryPackage: industryPackages.slice(),
+        discovereePackage: discovereePackages.slice(),
+        configuration: configurations.slice(),
+        material: materials.slice(),
+        mounting: mountingTypes.slice(),
+        partStatus: partStatuses.slice(),
+        qualification: ["Automotive", "Non-Automotive"],
+      }));
+    }
+
+    didInitDefaults.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync local UI when global filters change (for example after Clear All)
+  useEffect(() => {
+    setLocalFilters(filters);
+  }, [filters]);
+
+  const applyFilters = () => {
+    Object.entries(localFilters).forEach(([key, value]) => {
+      setFilter(key, value);
+    });
+  };
+
+  const clearAll = () => {
+    resetFilters();
+    setLocalFilters({
+      manufacturers: [],
+      packages: [],
+      mounting: [],
+      channelType: [],
+      industryPackage: [],
+      discovereePackage: [],
+      qualification: [],
+      material: [],
+      partStatus: [],
+      configuration: [],
+      vdsMin: null,
+      vdsMax: null,
+      rdsonMin: null,
+      rdsonMax: null,
+      vthMin: null,
+      vthMax: null,
+      searchTerm: ''
+    });
+  };
+
   return (
     <div className="bg-white border border-gray-300 rounded shadow-sm">
       {/* First Row */}
@@ -33,98 +106,78 @@ export function FilterPanel() {
         {/* Manufacturer */}
         <div>
           <label className="block text-xs font-bold mb-1 text-gray-700">Manufacturer <span className="text-blue-600">ⓘ</span></label>
-          <select
-            className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            style={{ height: '30px' }}
-          >
-            <option value="">{manufacturers.length} Manufacturers</option>
-            {manufacturers.map(manf => (
-              <option key={manf} value={manf}>{manf}</option>
-            ))}
-          </select>
+          <MultiSelect
+            options={manufacturers}
+            selected={localFilters.manufacturers || []}
+            onChange={(next) => setLocalFilters(prev => ({ ...prev, manufacturers: next }))}
+            placeholder={`${manufacturers.length} Manufacturers`}
+          />
         </div>
 
         {/* Industry Package Category */}
         <div>
           <label className="block text-xs font-bold mb-1 text-gray-700">Industry Package Category <span className="text-blue-600">ⓘ</span></label>
-          <select
-            className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            style={{ height: '30px' }}
-          >
-            <option value="">{industryPackages.length} Packages</option>
-            {industryPackages.map(pkg => (
-              <option key={pkg} value={pkg}>{pkg}</option>
-            ))}
-          </select>
+          <MultiSelect
+            options={industryPackages}
+            selected={localFilters.industryPackage || []}
+            onChange={(next) => setLocalFilters(prev => ({ ...prev, industryPackage: next }))}
+            placeholder={`${industryPackages.length} Packages`}
+          />
         </div>
 
         {/* DiscoverEE Package Category */}
         <div>
           <label className="block text-xs font-bold mb-1 text-gray-700">DiscoverEE Package Category <span className="text-blue-600">ⓘ</span></label>
-          <select
-            className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            style={{ height: '30px' }}
-          >
-            <option value="">{discovereePackages.length} Packages</option>
-            {discovereePackages.map(pkg => (
-              <option key={pkg} value={pkg}>{pkg}</option>
-            ))}
-          </select>
+          <MultiSelect
+            options={discovereePackages}
+            selected={localFilters.discovereePackage || []}
+            onChange={(next) => setLocalFilters(prev => ({ ...prev, discovereePackage: next }))}
+            placeholder={`${discovereePackages.length} Packages`}
+          />
         </div>
 
         {/* Configuration */}
         <div>
           <label className="block text-xs font-bold mb-1 text-gray-700">Configuration <span className="text-blue-600">ⓘ</span></label>
-          <select
-            className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            style={{ height: '30px' }}
-          >
-            <option value="">5 Config</option>
-            {configurations.map(config => (
-              <option key={config} value={config}>{config}</option>
-            ))}
-          </select>
+          <MultiSelect
+            options={configurations}
+            selected={localFilters.configuration || []}
+            onChange={(next) => setLocalFilters(prev => ({ ...prev, configuration: next }))}
+            placeholder={` ${configurations.length} Config`}
+          />
         </div>
 
         {/* Qualification */}
         <div>
           <label className="block text-xs font-bold mb-1 text-gray-700">Qualification <span className="text-blue-600">ⓘ</span></label>
-          <select
-            className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            style={{ height: '30px' }}
-          >
-            <option value="">2 Automotive</option>
-            <option value="Automotive">Automotive</option>
-            <option value="Non-Automotive">Non-Automotive</option>
-          </select>
+          <MultiSelect
+            options={["Automotive","Non-Automotive"]}
+            selected={localFilters.qualification || []}
+            onChange={(next) => setLocalFilters(prev => ({ ...prev, qualification: next }))}
+            placeholder={`2 Automotive`}
+          />
         </div>
 
         {/* Material */}
         <div>
           <label className="block text-xs font-bold mb-1 text-gray-700">Material <span className="text-blue-600">ⓘ</span></label>
-          <select
-            className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            style={{ height: '30px' }}
-          >
-            <option value="">Si, GaN</option>
-            {materials.map(mat => (
-              <option key={mat} value={mat}>{mat}</option>
-            ))}
-          </select>
+          <MultiSelect
+            options={materials}
+            selected={localFilters.material || []}
+            onChange={(next) => setLocalFilters(prev => ({ ...prev, material: next }))}
+            placeholder={`Si, GaN`}
+          />
         </div>
 
         {/* Mounting */}
         <div>
           <label className="block text-xs font-bold mb-1 text-gray-700">Mounting <span className="text-blue-600">ⓘ</span></label>
-          <select
-            className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            style={{ height: '30px' }}
-          >
-            <option value="">THL, SMD, DIE</option>
-            {mountingTypes.map(mount => (
-              <option key={mount} value={mount}>{mount}</option>
-            ))}
-          </select>
+          <MultiSelect
+            options={mountingTypes}
+            selected={localFilters.mounting || []}
+            onChange={(next) => setLocalFilters(prev => ({ ...prev, mounting: next }))}
+            placeholder={`THL, SMD, DIE`}
+          />
         </div>
       </div>
 
@@ -155,8 +208,8 @@ export function FilterPanel() {
             <input
               type="number"
               placeholder="Min"
-              value={filters.vdsMin || ''}
-              onChange={(e) => setFilter('vdsMin', e.target.value ? parseFloat(e.target.value) : null)}
+              value={localFilters.vdsMin || ''}
+              onChange={(e) => setLocalFilters(prev => ({ ...prev, vdsMin: e.target.value ? parseFloat(e.target.value) : null }))}
               className="w-1/2 text-xs border border-gray-400 rounded px-2 py-1 hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               style={{ height: '30px' }}
             />
@@ -164,8 +217,8 @@ export function FilterPanel() {
             <input
               type="number"
               placeholder="Max"
-              value={filters.vdsMax || ''}
-              onChange={(e) => setFilter('vdsMax', e.target.value ? parseFloat(e.target.value) : null)}
+              value={localFilters.vdsMax || ''}
+              onChange={(e) => setLocalFilters(prev => ({ ...prev, vdsMax: e.target.value ? parseFloat(e.target.value) : null }))}
               className="w-1/2 text-xs border border-gray-400 rounded px-2 py-1 hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               style={{ height: '30px' }}
             />
@@ -179,8 +232,8 @@ export function FilterPanel() {
             <input
               type="number"
               placeholder="Min"
-              value={filters.vthMin || ''}
-              onChange={(e) => setFilter('vthMin', e.target.value ? parseFloat(e.target.value) : null)}
+              value={localFilters.vthMin || ''}
+              onChange={(e) => setLocalFilters(prev => ({ ...prev, vthMin: e.target.value ? parseFloat(e.target.value) : null }))}
               className="w-1/2 text-xs border border-gray-400 rounded px-2 py-1 hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               style={{ height: '30px' }}
             />
@@ -188,8 +241,8 @@ export function FilterPanel() {
             <input
               type="number"
               placeholder="Max"
-              value={filters.vthMax || ''}
-              onChange={(e) => setFilter('vthMax', e.target.value ? parseFloat(e.target.value) : null)}
+              value={localFilters.vthMax || ''}
+              onChange={(e) => setLocalFilters(prev => ({ ...prev, vthMax: e.target.value ? parseFloat(e.target.value) : null }))}
               className="w-1/2 text-xs border border-gray-400 rounded px-2 py-1 hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               style={{ height: '30px' }}
             />
@@ -204,8 +257,8 @@ export function FilterPanel() {
               type="number"
               step="0.001"
               placeholder="0"
-              value={filters.rdsonMin || ''}
-              onChange={(e) => setFilter('rdsonMin', e.target.value ? parseFloat(e.target.value) : null)}
+              value={localFilters.rdsonMin || ''}
+              onChange={(e) => setLocalFilters(prev => ({ ...prev, rdsonMin: e.target.value ? parseFloat(e.target.value) : null }))}
               className="w-1/2 text-xs border border-gray-400 rounded px-2 py-1 hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               style={{ height: '30px' }}
             />
@@ -214,8 +267,8 @@ export function FilterPanel() {
               type="number"
               step="0.001"
               placeholder="1"
-              value={filters.rdsonMax || ''}
-              onChange={(e) => setFilter('rdsonMax', e.target.value ? parseFloat(e.target.value) : null)}
+              value={localFilters.rdsonMax || ''}
+              onChange={(e) => setLocalFilters(prev => ({ ...prev, rdsonMax: e.target.value ? parseFloat(e.target.value) : null }))}
               className="w-1/2 text-xs border border-gray-400 rounded px-2 py-1 hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               style={{ height: '30px' }}
             />
@@ -242,6 +295,8 @@ export function FilterPanel() {
           <select
             className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             style={{ height: '30px' }}
+            value={localFilters.view || 'VDS,RDSON'}
+            onChange={(e) => setLocalFilters(prev => ({ ...prev, view: e.target.value }))}
           >
             <option value="VDS,RDSON">VDS,RDSON</option>
             <option value="VDS,LOWEST RDSON">VDS,LOWEST RDSON</option>
@@ -264,6 +319,8 @@ export function FilterPanel() {
           <select
             className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             style={{ height: '30px' }}
+            value={localFilters.partStatus && localFilters.partStatus[0] ? localFilters.partStatus[0] : ''}
+            onChange={(e) => setLocalFilters(prev => ({ ...prev, partStatus: e.target.value ? [e.target.value] : [] }))}
           >
             <option value="">Promotion</option>
             {partStatuses.map(status => (
@@ -275,15 +332,16 @@ export function FilterPanel() {
         {/* Buttons */}
         <div className="flex gap-2">
           <button
-            className="px-3 py-1 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700 shadow-sm"
-            style={{ height: '30px' }}
+            onClick={applyFilters}
+            className="text-xs font-semibold rounded"
+            style={{ backgroundColor: '#16a34a', color: '#ffffff', padding: '8px 14px', margin: '4px', borderRadius: '5px' }}
           >
             Update
           </button>
           <button
-            onClick={resetFilters}
-            className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700 shadow-sm"
-            style={{ height: '30px' }}
+            onClick={clearAll}
+            className="text-xs font-semibold rounded"
+            style={{ backgroundColor: '#dc2626', color: '#ffffff', padding: '8px 14px', margin: '4px', borderRadius: '5px' }}
           >
             Clear All
           </button>

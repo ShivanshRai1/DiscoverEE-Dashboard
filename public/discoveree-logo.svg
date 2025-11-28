@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 96" width="400" height="96" role="img" aria-label="DiscoverEE logo">
+  <rect width="100%" height="100%" fill="none"/>
+  <style>
+    .logo-text { font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 800; font-size: 64px; fill: #000; }
+  </style>
+  <!-- Render 'Disc' -->
+  <text class="logo-text" x="0" y="68">Disc</text>
+  <!-- Red circular 'o' placed after 'Disc' (moved further right, slightly smaller) -->
+  <g transform="translate(152,18)">
+    <circle cx="0" cy="34" r="14" fill="#e33" />
+    <circle cx="0" cy="34" r="6" fill="#fff" />
+  </g>
+  <!-- Render remaining text 'verEE' positioned right after the circle -->
+  <text class="logo-text" x="192" y="68">verEE</text>
+</svg>
