@@ -45,7 +45,7 @@ function App() {
                     borderBottom: '10px solid #0f766e'
                   }}></div>
                   
-                  <div className="px-6 py-5 text-white text-center font-semibold text-lg mb-5" style={{ backgroundColor: '#0f766e' }}>
+                  <div className="px-6 py-5 text-white text-center font-semibold text-lg mb-5" style={{ backgroundColor: '#0f766e', marginTop: '8px' }}>
                     Available : $0
                   </div>
                   <button className="w-full px-6 py-4 text-center bg-white text-gray-800 hover:bg-gray-50 transition-colors font-medium text-base mb-4 rounded-lg" style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
