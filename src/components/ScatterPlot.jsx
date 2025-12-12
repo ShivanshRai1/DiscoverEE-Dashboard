@@ -172,7 +172,7 @@ export function ScatterPlot() {
   };
 
   return (
-  <div className="bg-white border border-gray-300 rounded shadow-sm py-2 px-3">
+  <div className="bg-white border border-gray-300 rounded shadow-sm py-2 px-6">
       {plotData.length > 0 ? (
         <div>
           <Plot

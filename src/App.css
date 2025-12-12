@@ -4,7 +4,6 @@
 
 * {
   margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
@@ -141,7 +140,6 @@ main .bg-white.border.border-gray-300.rounded.shadow-sm {
   border-radius: 0;
   box-shadow: none;
   border: none;
-  border-top: 4px solid #f0c419;
   overflow: hidden;
 }
 
@@ -154,12 +152,12 @@ main .grid > div label {
 }
 
 main .grid {
-  gap: 1px !important;
-  padding: 8px 6px !important;
+  gap: 8px;
+  padding: 12px 24px;
 }
 
 main .grid > div {
-  padding: 6px 4px !important;
+  padding: 0;
 }
 
 main select, main input[type="number"] { 

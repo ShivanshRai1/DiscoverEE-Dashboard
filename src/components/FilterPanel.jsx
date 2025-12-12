@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import MultiSelect from './MultiSelect';
+import InfoTooltip from './InfoTooltip';
 
 export function FilterPanel() {
   const {
@@ -100,12 +101,14 @@ export function FilterPanel() {
   };
 
   return (
-    <div className="bg-white border border-gray-300 rounded shadow-sm">
+    <div className="bg-gray-50 rounded shadow-sm">
       {/* First Row */}
-      <div className="grid grid-cols-6 gap-2 px-3 py-2 border-b border-gray-200">
+      <div className="grid grid-cols-7 gap-2 mb-3">
         {/* Manufacturer */}
         <div>
-          <label className="block text-xs font-bold mb-1 text-gray-700">Manufacturer <span className="text-blue-600">ⓘ</span></label>
+          <label className="block text-xs font-bold mb-1 text-gray-700">
+            Manufacturer <InfoTooltip content="Select the manufacturer's whose products you would like to view in the dashboard. Only the manufacturer's that are included in your subscription plan are shown here." />
+          </label>
           <MultiSelect
             options={manufacturers}
             selected={localFilters.manufacturers || []}
@@ -116,7 +119,7 @@ export function FilterPanel() {
 
         {/* Industry Package Category */}
         <div>
-          <label className="block text-xs font-bold mb-1 text-gray-700">Industry Package Category <span className="text-blue-600">ⓘ</span></label>
+          <label className="block text-xs font-bold mb-1 text-gray-700">Industry Package Category <InfoTooltip content="Filter parts by manufacturer's package name. To select all DPak parts for example, you will have to select DPak, DPAK, D-Pak, TO-252, T0252 etc. To get around this problem, we recommend you to use DiscoverEE Package Category." /></label>
           <MultiSelect
             options={industryPackages}
             selected={localFilters.industryPackage || []}
@@ -127,7 +130,7 @@ export function FilterPanel() {
 
         {/* DiscoverEE Package Category */}
         <div>
-          <label className="block text-xs font-bold mb-1 text-gray-700">DiscoverEE Package Category <span className="text-blue-600">ⓘ</span></label>
+          <label className="block text-xs font-bold mb-1 text-gray-700">DiscoverEE Package Category <InfoTooltip content="Filter parts by DiscoverEE's package category which is created based on package specifications to combine similar packages into the same category. This category is based on whether the part is Surface Mount (SMD), Through Hole (THL), Bare Die (DIE), has a thermal pad (ThermalPAD), has dual side cooling (Dual Cool), has extended leads (Leaded or NoLead), Wettable Flanks (WF) and its length and width in millimeter (WxL)." /></label>
           <MultiSelect
             options={discovereePackages}
             selected={localFilters.discovereePackage || []}
@@ -138,7 +141,7 @@ export function FilterPanel() {
 
         {/* Configuration */}
         <div>
-          <label className="block text-xs font-bold mb-1 text-gray-700">Configuration <span className="text-blue-600">ⓘ</span></label>
+          <label className="block text-xs font-bold mb-1 text-gray-700">Configuration <InfoTooltip content="Filter parts by their configuration such as Single, Single Plus Schottky, Dual, Dual Complementary, Dual Asymmetric." /></label>
           <MultiSelect
             options={configurations}
             selected={localFilters.configuration || []}
@@ -149,7 +152,7 @@ export function FilterPanel() {
 
         {/* Qualification */}
         <div>
-          <label className="block text-xs font-bold mb-1 text-gray-700">Qualification <span className="text-blue-600">ⓘ</span></label>
+          <label className="block text-xs font-bold mb-1 text-gray-700">Qualification <InfoTooltip content="Filter parts by their compliance. AEC Q101 qualified parts are referred to as 'Automotive' and all others are referred to as 'Non-Automotive.' To choose both options, select 'All'." /></label>
           <MultiSelect
             options={["Automotive","Non-Automotive"]}
             selected={localFilters.qualification || []}
@@ -160,7 +163,7 @@ export function FilterPanel() {
 
         {/* Material */}
         <div>
-          <label className="block text-xs font-bold mb-1 text-gray-700">Material <span className="text-blue-600">ⓘ</span></label>
+          <label className="block text-xs font-bold mb-1 text-gray-700">Material <InfoTooltip content="Filter parts by material. Silicon parts are referred to as 'Si', Silicon Carbide parts are referred to as 'SiC' and Gallium Nitride parts are referred to as 'GaN'. To choose all materials, select 'All'." /></label>
           <MultiSelect
             options={materials}
             selected={localFilters.material || []}
@@ -171,7 +174,7 @@ export function FilterPanel() {
 
         {/* Mounting */}
         <div>
-          <label className="block text-xs font-bold mb-1 text-gray-700">Mounting <span className="text-blue-600">ⓘ</span></label>
+          <label className="block text-xs font-bold mb-1 text-gray-700">Mounting <InfoTooltip content="Filter parts by mounting. Surface Mount parts are referred to as SMD, Through Hole parts are referred to as THL and Bare Die parts are referred to as DIE. To choose all types, select 'All'." /></label>
           <MultiSelect
             options={mountingTypes}
             selected={localFilters.mounting || []}
@@ -182,10 +185,9 @@ export function FilterPanel() {
       </div>
 
       {/* Second Row */}
-      <div className="grid grid-cols-9 gap-2 px-3 py-2 items-end">
-        {/* RdsonVGS [V] */}
+      <div className="grid grid-cols-7 gap-2 items-end">{/* RdsonVGS [V] */}
         <div>
-          <label className="block text-xs font-bold mb-1 text-gray-700">RdsonVGS [V] <span className="text-blue-600">ⓘ</span></label>
+          <label className="block text-xs font-bold mb-1 text-gray-700">RdsonVGS [V] <InfoTooltip content="Filter parts by the absolute value of VGS at which the on-resistance is specified. To combine parts that have similar VGS values, we created several levels between 0 - 17.5V. Selecting a level of 3.5 - 6.49V VGS will only display parts that have on-resistance specified at a VGS between this range in the datasheet. All parts that have VGS value outside the selected range will not be shown on the dashboard. Use this only if you want to narrow down the part selection based on the VGS values specified in the datasheet." /></label>
           <select
             className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             style={{ height: '30px' }}
@@ -202,8 +204,8 @@ export function FilterPanel() {
         </div>
 
         {/* Breakdown Voltage Range [V] */}
-        <div className="col-span-2">
-          <label className="block text-xs font-bold mb-1 text-gray-700">Breakdown Voltage Range [V] <span className="text-blue-600">ⓘ</span></label>
+        <div>
+          <label className="block text-xs font-bold mb-1 text-gray-700">Breakdown Voltage Range [V] <InfoTooltip content="Filter parts by their breakdown voltage rating." /></label>
           <div className="flex gap-1">
             <input
               type="number"
@@ -226,8 +228,8 @@ export function FilterPanel() {
         </div>
 
         {/* VTH Range [V] */}
-        <div className="col-span-2">
-          <label className="block text-xs font-bold mb-1 text-gray-700">VTH Range [V] <span className="text-blue-600">ⓘ</span></label>
+        <div>
+          <label className="block text-xs font-bold mb-1 text-gray-700">VTH Range [V] <InfoTooltip content="Filter parts by their threshold voltage rating." /></label>
           <div className="flex gap-1">
             <input
               type="number"
@@ -250,8 +252,8 @@ export function FilterPanel() {
         </div>
 
         {/* On Resistance Range [Ohm] */}
-        <div className="col-span-2">
-          <label className="block text-xs font-bold mb-1 text-gray-700">On Resistance Range [Ohm] <span className="text-blue-600">ⓘ</span></label>
+        <div>
+          <label className="block text-xs font-bold mb-1 text-gray-700">On Resistance Range [Ohm] <InfoTooltip content="Filter parts by their on-resistance rating. Here we show the minimum value of Rdson(max) found on the datasheet. If Rdson(max) value is not found in the datasheet, then we show the Rdson(typ) value. This mainly happens when a VGS value is selected for which only the Rdson(typ) value is specified in the datasheet." /></label>
           <div className="flex gap-1">
             <input
               type="number"
@@ -277,7 +279,7 @@ export function FilterPanel() {
 
         {/* Display Type */}
         <div>
-          <label className="block text-xs font-bold mb-1 text-gray-700">Display Type <span className="text-blue-600">ⓘ</span></label>
+          <label className="block text-xs font-bold mb-1 text-gray-700">Display Type <InfoTooltip content="Select to view the Y-axis on a Linear or Log scale." /></label>
           <select
             value={displayType}
             onChange={(e) => setDisplayType(e.target.value)}
@@ -315,7 +317,7 @@ export function FilterPanel() {
 
         {/* Part Status */}
         <div>
-          <label className="block text-xs font-bold mb-1 text-gray-700">Part Status <span className="text-blue-600">ⓘ</span></label>
+          <label className="block text-xs font-bold mb-1 text-gray-700">Part Status <InfoTooltip content="Select to view the parts by their promotion status. 'Promotion' means that the parts are actively promoted by the manufacturer on their website. 'Non Promotion' means that the parts are not actively promoted although they may not be Obsolete. We consider non-promotion to be an early indicator of obsolescence and possible spec changes." /></label>
           <select
             className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             style={{ height: '30px' }}
@@ -330,18 +332,18 @@ export function FilterPanel() {
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-end">
           <button
             onClick={applyFilters}
             className="text-xs font-semibold rounded"
-            style={{ backgroundColor: '#16a34a', color: '#ffffff', padding: '8px 14px', margin: '4px', borderRadius: '5px' }}
+            style={{ backgroundColor: '#16a34a', color: '#ffffff', padding: '8px 14px', borderRadius: '5px', height: '30px' }}
           >
             Update
           </button>
           <button
             onClick={clearAll}
             className="text-xs font-semibold rounded"
-            style={{ backgroundColor: '#dc2626', color: '#ffffff', padding: '8px 14px', margin: '4px', borderRadius: '5px' }}
+            style={{ backgroundColor: '#dc2626', color: '#ffffff', padding: '8px 14px', borderRadius: '5px', height: '30px' }}
           >
             Clear All
           </button>
