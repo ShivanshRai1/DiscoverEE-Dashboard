@@ -1,10 +1,14 @@
 import { FilterPanel } from './components/FilterPanel';
 import { ScatterPlot } from './components/ScatterPlot';
+import { SelectedProducts } from './components/SelectedProducts';
+import InfoTooltip from './components/InfoTooltip';
 import { useState } from 'react';
+import { useStore } from './store/useStore';
 import './App.css';
 
 function App() {
   const [showDropdown, setShowDropdown] = useState(false);
+  const { displayType, setDisplayType } = useStore();
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -78,9 +82,44 @@ function App() {
           <div className="mb-4">
             <FilterPanel />
           </div>
+        </div>
+        
+        {/* Selected Products - Full Width */}
+        <SelectedProducts />
+        
+        <div className="max-w-7xl mx-auto" style={{ paddingLeft: '32px', paddingRight: '32px' }}>
           {/* Scatter Plot */}
           <div className="mb-4">
             <ScatterPlot />
+          </div>
+          
+          {/* Display Type Control */}
+          <div className="flex justify-center mb-4">
+            <div className="bg-white border border-gray-300 rounded shadow-sm py-3 px-6 inline-flex items-center">
+              <span className="text-xs font-bold text-gray-700 mr-3">Display Type</span>
+              <InfoTooltip content="Select to view the Y-axis on a Linear or Log scale." />
+              <span style={{ width: '48px' }}></span>
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  value="linear"
+                  checked={displayType === 'linear'}
+                  onChange={(e) => setDisplayType(e.target.value)}
+                  className="cursor-pointer w-4 h-4"
+                />
+                <span className="text-sm text-gray-700" style={{ marginLeft: '12px', marginRight: '48px' }}>Linear</span>
+              </label>
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  value="log"
+                  checked={displayType === 'log'}
+                  onChange={(e) => setDisplayType(e.target.value)}
+                  className="cursor-pointer w-4 h-4"
+                />
+                <span className="text-sm text-gray-700" style={{ marginLeft: '12px' }}>Log</span>
+              </label>
+            </div>
           </div>
         </div>
       </main>

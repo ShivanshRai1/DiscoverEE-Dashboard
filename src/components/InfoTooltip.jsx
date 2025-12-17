@@ -9,7 +9,7 @@ export default function InfoTooltip({ content }) {
   const handleMouseEnter = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setPosition({
-      top: rect.bottom + 8,
+      top: rect.top - 8,
       left: rect.left + rect.width / 2
     });
     setShow(true);
@@ -42,7 +42,7 @@ export default function InfoTooltip({ content }) {
           style={{
             top: position.top,
             left: position.left,
-            transform: 'translateX(-50%)',
+            transform: 'translate(-50%, -100%)',
             backgroundColor: '#0f172a',
             color: '#ffffff',
             width: '320px',
@@ -58,7 +58,7 @@ export default function InfoTooltip({ content }) {
           <div 
             className="absolute w-3 h-3 transform rotate-45"
             style={{
-              top: '-6px',
+              bottom: '-6px',
               left: '50%',
               marginLeft: '-6px',
               backgroundColor: '#0f172a'
@@ -66,8 +66,8 @@ export default function InfoTooltip({ content }) {
           />
           <style>{`
             @keyframes fadeIn {
-              from { opacity: 0; transform: translateX(-50%) translateY(-5px); }
-              to { opacity: 1; transform: translateX(-50%) translateY(0); }
+              from { opacity: 0; transform: translate(-50%, -100%) translateY(5px); }
+              to { opacity: 1; transform: translate(-50%, -100%) translateY(0); }
             }
           `}</style>
         </div>,

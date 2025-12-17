@@ -16,7 +16,9 @@ export function ScatterPlot() {
     chartXAxis, 
     chartYAxis,
     displayType,
-    getManufacturers
+    getManufacturers,
+    toggleProductSelection,
+    selectedProducts
   } = useStore();
 
   const devices = getFilteredDevices();
@@ -47,6 +49,9 @@ export function ScatterPlot() {
       const xData = [];
       const yData = [];
       const textData = [];
+      const customData = [];
+      const markerSizes = [];
+      const markerOpacities = [];
       
       manfDevices.forEach(device => {
         const xVal = device[chartXAxis];
@@ -56,6 +61,12 @@ export function ScatterPlot() {
           xData.push(xVal);
           yData.push(yVal);
           textData.push(`${device.partno}<br>Manufacturer: ${device.manf}<br>Package: ${device.package || 'N/A'}`);
+          customData.push(device.did);
+          
+          // Highlight selected products
+          const isSelected = selectedProducts.includes(device.did);
+          markerSizes.push(isSelected ? 12 : 8);
+          markerOpacities.push(isSelected ? 1 : 0.95);
         }
       });
       
@@ -67,17 +78,18 @@ export function ScatterPlot() {
           type: 'scatter',
           name: `Manf-${idx + 1}`,
           text: textData,
+          customdata: customData,
           hovertemplate: '%{text}<br>' + axisLabels[chartXAxis] + ': %{x:.0f} V<br>' + axisLabels[chartYAxis] + ': %{y:.3e} Ω<extra></extra>',
           hoverlabel: { bgcolor: 'rgba(255,255,255,0.96)', bordercolor: '#d1d5db', font: { size: 13, color: '#111827' } },
           marker: {
-            size: 8,
+            size: markerSizes,
             color: manfColorMap[manf],
             symbol: 'circle-open',
             line: {
               color: manfColorMap[manf],
               width: 1.6
             },
-            opacity: 0.95
+            opacity: markerOpacities
           },
           hoverinfo: 'text'
         });
@@ -85,7 +97,7 @@ export function ScatterPlot() {
     });
     
     return traces;
-  }, [devices, manufacturers, chartXAxis, chartYAxis, manfColorMap, axisLabels]);
+  }, [devices, manufacturers, chartXAxis, chartYAxis, manfColorMap, axisLabels, selectedProducts]);
 
   const layout = {
     title: {
@@ -94,7 +106,7 @@ export function ScatterPlot() {
       x: 0.5,
       xanchor: 'center',
       // nudge title slightly upward for better balance with legend
-      y: 1.06,
+      y: 1.12,
       yanchor: 'top'
     },
     xaxis: {
@@ -114,7 +126,7 @@ export function ScatterPlot() {
       title: {
         text: axisLabels[chartYAxis],
         font: { size: 13, color: '#374151', family: 'Helvetica, Arial, sans-serif' },
-        standoff: 40
+        standoff: 50
       },
       type: displayType === 'log' ? 'log' : 'linear',
       showgrid: true,
@@ -123,8 +135,10 @@ export function ScatterPlot() {
       tickfont: { size: 11, family: 'Helvetica, Arial, sans-serif' },
       exponentformat: 'e',
       tickformat: displayType === 'log' ? '.0e' : undefined,
-      automargin: true,
-      minor: { ticklen: 4, gridcolor: '#f6f6f6', gridwidth: 0.5 }
+      automargin: false,
+      side: 'left',
+      tickvals: displayType === 'log' ? [5e-4, 1e-3, 2e-3, 5e-3, 1e-2, 2e-2, 5e-2, 1e-1, 2e-1, 5e-1, 1e0, 2e0, 5e0, 1e1, 2e1, 5e1, 1e2, 2e2] : undefined,
+      minor: { showgrid: false, ticks: '' }
     },
     hovermode: 'closest',
     // enable Plotly's built-in legend (restore original in-plot legend positioning)
@@ -132,7 +146,7 @@ export function ScatterPlot() {
     legend: {
       orientation: 'h',
       // anchor legend by its bottom and nudge it slightly above the plot area
-      y: 1.01,
+      y: 1.02,
       yanchor: 'bottom',
       x: 0.5,
       xanchor: 'center',
@@ -149,7 +163,7 @@ export function ScatterPlot() {
       { type: 'line', x0: 0, x1: 0, y0: 0, y1: 1, yref: 'paper', line: { color: '#111111', width: 2 } }
     ],
     // increase top margin slightly so legend sits above the plot without overlapping
-    margin: { l: 80, r: 40, t: 130, b: 50 },
+    margin: { l: 55, r: 40, t: 170, b: 50, pad: 0 },
     // set a larger fixed height so the chart occupies more vertical space like the original
     height: 820,
     plot_bgcolor: 'white',
@@ -162,6 +176,7 @@ export function ScatterPlot() {
     displayModeBar: true,
     displaylogo: false,
     modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+    scrollZoom: false,
     toImageButtonOptions: {
       format: 'png',
       filename: 'discoveree_chart',
@@ -181,6 +196,14 @@ export function ScatterPlot() {
             config={config}
             style={{ width: '100%', height: '820px' }}
             useResizeHandler={true}
+            onInitialized={(figure, graphDiv) => {
+              graphDiv.on('plotly_click', (data) => {
+                if (data.points && data.points[0] && data.points[0].customdata) {
+                  const deviceId = data.points[0].customdata;
+                  toggleProductSelection(deviceId);
+                }
+              });
+            }}
           />
 
           <div style={{ display: 'none' }} className="mt-4 pt-3 border-t border-gray-300">

@@ -277,20 +277,6 @@ export function FilterPanel() {
           </div>
         </div>
 
-        {/* Display Type */}
-        <div>
-          <label className="block text-xs font-bold mb-1 text-gray-700">Display Type <InfoTooltip content="Select to view the Y-axis on a Linear or Log scale." /></label>
-          <select
-            value={displayType}
-            onChange={(e) => setDisplayType(e.target.value)}
-            className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            style={{ height: '30px' }}
-          >
-            <option value="linear">Linear</option>
-            <option value="log">Log</option>
-          </select>
-        </div>
-
         {/* View */}
         <div>
           <label className="block text-xs font-bold mb-1 text-gray-700">View</label>
