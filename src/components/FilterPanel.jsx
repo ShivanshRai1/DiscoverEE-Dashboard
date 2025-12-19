@@ -31,6 +31,7 @@ export function FilterPanel() {
 
   // Local UI state - user edits go here until they press Update
   const [localFilters, setLocalFilters] = useState(filters);
+  const debounceTimer = useRef(null);
 
   // Ensure default 'all selected' behavior on first mount when store filters are empty
   const didInitDefaults = useRef(false);
@@ -71,11 +72,24 @@ export function FilterPanel() {
     setLocalFilters(filters);
   }, [filters]);
 
-  const applyFilters = () => {
-    Object.entries(localFilters).forEach(([key, value]) => {
-      setFilter(key, value);
-    });
-  };
+  // Auto-apply filters with debouncing
+  useEffect(() => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      Object.entries(localFilters).forEach(([key, value]) => {
+        setFilter(key, value);
+      });
+    }, 300); // 300ms debounce to avoid too many updates
+
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, [localFilters, setFilter]);
 
   const clearAll = () => {
     resetFilters();
@@ -317,15 +331,24 @@ export function FilterPanel() {
           </select>
         </div>
 
-        {/* Buttons */}
-        <div className="flex gap-2 items-end">
-          <button
-            onClick={applyFilters}
-            className="text-xs font-semibold rounded"
-            style={{ backgroundColor: '#16a34a', color: '#ffffff', padding: '8px 14px', borderRadius: '5px', height: '30px' }}
+        {/* Buttons and Count */}
+        <div className="flex gap-3 items-end">
+          <div 
+            className="text-xs font-semibold"
+            style={{ 
+              color: '#374151',
+              padding: '6px 12px',
+              backgroundColor: '#f3f4f6',
+              borderRadius: '5px',
+              border: '1px solid #d1d5db',
+              height: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              whiteSpace: 'nowrap'
+            }}
           >
-            Update
-          </button>
+            Parts: {filteredCount}
+          </div>
           <button
             onClick={clearAll}
             className="text-xs font-semibold rounded"

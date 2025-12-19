@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 
 export default function MultiSelect({ options = [], selected = [], onChange, placeholder, hoverOpen = true }) {
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const containerRef = useRef(null);
    const dropdownRef = useRef(null);
 
@@ -34,6 +35,15 @@ export default function MultiSelect({ options = [], selected = [], onChange, pla
       boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
       maxHeight: '260px',
       overflow: 'auto'
+    },
+    searchInput: {
+      width: '100%',
+      padding: '6px 8px',
+      fontSize: '12px',
+      border: 'none',
+      borderBottom: '1px solid #e5e7eb',
+      outline: 'none',
+      boxSizing: 'border-box'
     },
     stickyHeader: {
       position: 'sticky',
@@ -86,6 +96,9 @@ export default function MultiSelect({ options = [], selected = [], onChange, pla
       updatePos();
       window.addEventListener('resize', updatePos);
       window.addEventListener('scroll', updatePos, true);
+    } else {
+      // Clear search term when dropdown closes
+      setSearchTerm('');
     }
     return () => {
       window.removeEventListener('resize', updatePos);
@@ -164,6 +177,11 @@ export default function MultiSelect({ options = [], selected = [], onChange, pla
     else onChange([...options]);
   };
 
+  // Filter options based on search term (case-insensitive)
+  const filteredOptions = searchTerm.trim() === ''
+    ? options
+    : options.filter(opt => String(opt).toLowerCase().includes(searchTerm.toLowerCase()));
+
   return (
     <div className="relative" ref={containerRef}>
       <button
@@ -191,12 +209,20 @@ export default function MultiSelect({ options = [], selected = [], onChange, pla
               width: dropdownPos.width
             }}
           >
+          <input
+            type="text"
+            placeholder="Search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={styles.searchInput}
+            onClick={(e) => e.stopPropagation()}
+          />
           <div style={styles.stickyHeader}>
             <label style={{ fontSize: 12, color: '#6b7280' }}>Options</label>
-            <button type="button" onClick={selectAll} style={{ fontSize: 12, color: '#2563eb', background: 'transparent', border: 'none', cursor: 'pointer' }}>{selected.length === options.length ? 'Unselect All' : 'Select All'}</button>
+            <button type="button" onClick={() => { setSearchTerm(''); }} style={{ fontSize: 12, color: '#2563eb', background: 'transparent', border: 'none', cursor: 'pointer' }}>unselect all</button>
           </div>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {options.map((opt, idx) => (
+            {filteredOptions.map((opt, idx) => (
               <li key={opt} style={{ borderBottom: '1px solid #f3f4f6' }}>
                 <div
                   role="option"

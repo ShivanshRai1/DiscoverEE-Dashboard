@@ -32,6 +32,7 @@ export const useStore = create((set, get) => ({
   chartYAxis: 'rdsontyp10vgs25ta',
   displayType: 'log', // 'linear' or 'log' - DiscoverEE defaults to log
   zoomMode: 'xy', // 'xy', 'x', 'y'
+  hiddenManufacturers: [], // Temporary chart-only visibility toggle
   
   // Get unique values for filters
   getManufacturers: () => {
@@ -224,5 +225,13 @@ export const useStore = create((set, get) => ({
   
   // Chart axes
   setChartAxes: (xAxis, yAxis) =>
-    set({ chartXAxis: xAxis, chartYAxis: yAxis })
+    set({ chartXAxis: xAxis, chartYAxis: yAxis }),
+
+  // Manufacturer visibility toggle (chart only)
+  toggleManufacturer: (manf) =>
+    set((state) => ({
+      hiddenManufacturers: state.hiddenManufacturers.includes(manf)
+        ? state.hiddenManufacturers.filter(m => m !== manf)
+        : [...state.hiddenManufacturers, manf]
+    }))
 }));

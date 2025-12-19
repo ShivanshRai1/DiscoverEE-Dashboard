@@ -96,8 +96,9 @@ function App() {
           {/* Display Type Control */}
           <div className="flex justify-center mb-4">
             <div className="bg-white border border-gray-300 rounded shadow-sm py-3 px-6 inline-flex items-center">
-              <span className="text-xs font-bold text-gray-700 mr-3">Display Type</span>
-              <InfoTooltip content="Select to view the Y-axis on a Linear or Log scale." />
+              <label className="text-xs font-bold text-gray-700">
+                Display Type <InfoTooltip content="Select to view the Y-axis on a Linear or Log scale." />
+              </label>
               <span style={{ width: '48px' }}></span>
               <label className="flex items-center cursor-pointer">
                 <input

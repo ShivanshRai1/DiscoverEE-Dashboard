@@ -1,75 +1,68 @@
-import { useState } from 'react';
-import ReactDOM from 'react-dom';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function InfoTooltip({ content }) {
   const [show, setShow] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
-  const iconRef = useState(null)[0];
+  const iconRef = useRef(null);
 
-  const handleMouseEnter = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setPosition({
-      top: rect.top - 8,
-      left: rect.left + rect.width / 2
-    });
-    setShow(true);
-  };
+  useEffect(() => {
+    if (show && iconRef.current) {
+      const rect = iconRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.top + window.scrollY - 10,
+        left: rect.left + window.scrollX + rect.width / 2
+      });
+    }
+  }, [show]);
 
   return (
     <>
       <span 
-        className="inline-block ml-1.5"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={() => setShow(false)}
         ref={iconRef}
+        className="inline-block ml-1 cursor-help"
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        style={{ color: '#2563eb', fontSize: '16px', fontWeight: 'bold' }}
       >
-        <span 
-          className="cursor-help text-sm font-bold"
-          style={{ color: '#2563eb' }}
-          aria-label="More information"
-          role="button"
-          tabIndex={0}
-          onFocus={handleMouseEnter}
-          onBlur={() => setShow(false)}
-        >
-          ⓘ
-        </span>
+        ⓘ
       </span>
       
-      {show && ReactDOM.createPortal(
+      {show && createPortal(
         <div 
-          className="fixed z-[9999] text-sm shadow-xl"
           style={{
-            top: position.top,
-            left: position.left,
+            position: 'absolute',
+            top: `${position.top}px`,
+            left: `${position.left}px`,
             transform: 'translate(-50%, -100%)',
             backgroundColor: '#0f172a',
             color: '#ffffff',
-            width: '320px',
-            padding: '14px 16px',
+            width: '280px',
+            padding: '10px 12px',
             borderRadius: '4px',
-            animation: 'fadeIn 0.15s ease-in',
-            pointerEvents: 'none',
-            lineHeight: '1.5'
+            fontSize: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+            zIndex: 999999,
+            lineHeight: '1.5',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            whiteSpace: 'normal',
+            textAlign: 'left',
+            pointerEvents: 'none'
           }}
-          role="tooltip"
         >
           {content}
           <div 
-            className="absolute w-3 h-3 transform rotate-45"
             style={{
+              position: 'absolute',
               bottom: '-6px',
               left: '50%',
-              marginLeft: '-6px',
-              backgroundColor: '#0f172a'
+              transform: 'translateX(-50%) rotate(45deg)',
+              width: '8px',
+              height: '8px',
+              backgroundColor: '#0f172a',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
             }}
           />
-          <style>{`
-            @keyframes fadeIn {
-              from { opacity: 0; transform: translate(-50%, -100%) translateY(5px); }
-              to { opacity: 1; transform: translate(-50%, -100%) translateY(0); }
-            }
-          `}</style>
         </div>,
         document.body
       )}

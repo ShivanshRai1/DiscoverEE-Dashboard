@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import Plot from 'react-plotly.js';
 import { useStore } from '../store/useStore';
+import { LegendFilter } from './LegendFilter';
 
 // Color palette for manufacturers (vibrant, alternating hues)
 const MANUFACTURER_COLORS = [
@@ -18,7 +19,8 @@ export function ScatterPlot() {
     displayType,
     getManufacturers,
     toggleProductSelection,
-    selectedProducts
+    selectedProducts,
+    hiddenManufacturers
   } = useStore();
 
   const devices = getFilteredDevices();
@@ -45,6 +47,11 @@ export function ScatterPlot() {
     const traces = [];
     
     manufacturers.forEach((manf, idx) => {
+      // Skip hidden manufacturers
+      if (hiddenManufacturers.includes(manf)) {
+        return;
+      }
+
       const manfDevices = devices.filter(d => d.manf === manf);
       const xData = [];
       const yData = [];
@@ -97,7 +104,7 @@ export function ScatterPlot() {
     });
     
     return traces;
-  }, [devices, manufacturers, chartXAxis, chartYAxis, manfColorMap, axisLabels, selectedProducts]);
+  }, [devices, manufacturers, chartXAxis, chartYAxis, manfColorMap, axisLabels, selectedProducts, hiddenManufacturers]);
 
   const layout = {
     title: {
@@ -141,29 +148,14 @@ export function ScatterPlot() {
       minor: { showgrid: false, ticks: '' }
     },
     hovermode: 'closest',
-    // enable Plotly's built-in legend (restore original in-plot legend positioning)
-    showlegend: true,
-    legend: {
-      orientation: 'h',
-      // anchor legend by its bottom and nudge it slightly above the plot area
-      y: 1.02,
-      yanchor: 'bottom',
-      x: 0.5,
-      xanchor: 'center',
-      bgcolor: 'rgba(255,255,255,0.95)',
-      bordercolor: '#e5e7eb',
-      borderwidth: 1,
-      traceorder: 'normal',
-      font: { size: 11, family: 'Helvetica, Arial, sans-serif' },
-      itemclick: 'toggleothers',
-      itemdoubleclick: 'toggle'
-    },
+    // disable Plotly's built-in legend (we use custom LegendFilter component)
+    showlegend: false,
     shapes: [
       // vertical baseline at x = 0
       { type: 'line', x0: 0, x1: 0, y0: 0, y1: 1, yref: 'paper', line: { color: '#111111', width: 2 } }
     ],
-    // increase top margin slightly so legend sits above the plot without overlapping
-    margin: { l: 55, r: 40, t: 170, b: 50, pad: 0 },
+    // increase top margin slightly for the title
+    margin: { l: 55, r: 40, t: 120, b: 50, pad: 0 },
     // set a larger fixed height so the chart occupies more vertical space like the original
     height: 820,
     plot_bgcolor: 'white',
@@ -190,6 +182,7 @@ export function ScatterPlot() {
   <div className="bg-white border border-gray-300 rounded shadow-sm py-2 px-6">
       {plotData.length > 0 ? (
         <div>
+          <LegendFilter manufacturers={manufacturers} />
           <Plot
             data={plotData}
             layout={layout}
