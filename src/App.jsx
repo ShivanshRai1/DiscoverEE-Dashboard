@@ -97,7 +97,7 @@ function App() {
           <div className="flex justify-center mb-4">
             <div className="bg-white border border-gray-300 rounded shadow-sm py-3 px-6 inline-flex items-center">
               <label className="text-xs font-bold text-gray-700">
-                Display Type <InfoTooltip content="Select to view the Y-axis on a Linear or Log scale." />
+                Display Type <InfoTooltip content="Select to view the Y-axis on a Linear or Log scale." placement="above" />
               </label>
               <span style={{ width: '48px' }}></span>
               <label className="flex items-center cursor-pointer">

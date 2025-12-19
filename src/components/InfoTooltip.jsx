@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-export default function InfoTooltip({ content }) {
+export default function InfoTooltip({ content, placement = 'below' }) {
   const [show, setShow] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const iconRef = useRef(null);
@@ -10,7 +10,7 @@ export default function InfoTooltip({ content }) {
     if (show && iconRef.current) {
       const rect = iconRef.current.getBoundingClientRect();
       setPosition({
-        top: rect.top + window.scrollY - 10,
+        top: rect.top + window.scrollY,
         left: rect.left + window.scrollX + rect.width / 2
       });
     }
@@ -34,7 +34,9 @@ export default function InfoTooltip({ content }) {
             position: 'absolute',
             top: `${position.top}px`,
             left: `${position.left}px`,
-            transform: 'translate(-50%, -100%)',
+            transform: placement === 'above' 
+              ? 'translate(-50%, calc(-100% - 10px))' 
+              : 'translate(-50%, 10px)',
             backgroundColor: '#0f172a',
             color: '#ffffff',
             width: '280px',
@@ -54,13 +56,16 @@ export default function InfoTooltip({ content }) {
           <div 
             style={{
               position: 'absolute',
-              bottom: '-6px',
+              [placement === 'above' ? 'bottom' : 'top']: '-6px',
               left: '50%',
               transform: 'translateX(-50%) rotate(45deg)',
-              width: '8px',
-              height: '8px',
+              width: '10px',
+              height: '10px',
               backgroundColor: '#0f172a',
-              border: '1px solid rgba(255, 255, 255, 0.2)'
+              ...(placement === 'above' 
+                ? { borderRight: '1px solid rgba(255, 255, 255, 0.2)', borderBottom: '1px solid rgba(255, 255, 255, 0.2)' }
+                : { borderLeft: '1px solid rgba(255, 255, 255, 0.2)', borderTop: '1px solid rgba(255, 255, 255, 0.2)' }
+              )
             }}
           />
         </div>,
