@@ -25,6 +25,12 @@ export function ScatterPlot() {
 
   const devices = getFilteredDevices();
   const manufacturers = getManufacturers();
+  
+  // Get only manufacturers that have devices in the filtered results
+  const visibleManufacturers = useMemo(() => {
+    const manfSet = new Set(devices.map(d => d.manf).filter(Boolean));
+    return Array.from(manfSet).sort();
+  }, [devices]);
 
   const axisLabels = {
     vds: 'Breakdown Voltage(V)',
@@ -106,6 +112,41 @@ export function ScatterPlot() {
     return traces;
   }, [devices, manufacturers, chartXAxis, chartYAxis, manfColorMap, axisLabels, selectedProducts, hiddenManufacturers]);
 
+  // Calculate smarter axis ranges - only adjust if there's significant blank space
+  const getAxisRanges = useMemo(() => {
+    const allXValues = plotData.flatMap(trace => trace.x || []).filter(val => val != null && !isNaN(val) && val > 0);
+    const allYValues = plotData.flatMap(trace => trace.y || []).filter(val => val != null && !isNaN(val) && val > 0);
+    
+    let xRange = undefined;
+    let yRange = undefined;
+
+    // Only apply custom range for X-axis if data starts significantly above 0
+    if (allXValues.length > 0) {
+      const xMin = Math.min(...allXValues);
+      const xMax = Math.max(...allXValues);
+      
+      // If min value is more than 20% above 0, adjust the range to reduce blank space
+      if (xMin > xMax * 0.2) {
+        const xPadding = (xMax - xMin) * 0.15; // 15% padding
+        xRange = [Math.max(0, xMin - xPadding), xMax + xPadding];
+      }
+    }
+
+    // For Y-axis, let Plotly handle it automatically (especially for log scale)
+    // Only intervene if there's extreme blank space in linear mode
+    if (displayType === 'linear' && allYValues.length > 0) {
+      const yMin = Math.min(...allYValues);
+      const yMax = Math.max(...allYValues);
+      
+      if (yMin > yMax * 0.2) {
+        const yPadding = (yMax - yMin) * 0.15;
+        yRange = [Math.max(0, yMin - yPadding), yMax + yPadding];
+      }
+    }
+
+    return { xRange, yRange };
+  }, [plotData, displayType]);
+
   const layout = {
     title: {
       text: `Select & Compare Products (Count: ${devices.length}) - Powered by DiscoverEE`,
@@ -127,7 +168,8 @@ export function ScatterPlot() {
       gridcolor: '#e6e6e6',
       gridwidth: 1,
       tickfont: { size: 11, family: 'Helvetica, Arial, sans-serif' },
-      tickformat: '.0f'
+      tickformat: '.0f',
+      ...(getAxisRanges.xRange && { range: getAxisRanges.xRange })
     },
     yaxis: {
       title: {
@@ -145,7 +187,8 @@ export function ScatterPlot() {
       automargin: false,
       side: 'left',
       tickvals: displayType === 'log' ? [5e-4, 1e-3, 2e-3, 5e-3, 1e-2, 2e-2, 5e-2, 1e-1, 2e-1, 5e-1, 1e0, 2e0, 5e0, 1e1, 2e1, 5e1, 1e2, 2e2] : undefined,
-      minor: { showgrid: false, ticks: '' }
+      minor: { showgrid: false, ticks: '' },
+      ...(getAxisRanges.yRange && { range: getAxisRanges.yRange })
     },
     hovermode: 'closest',
     // disable Plotly's built-in legend (we use custom LegendFilter component)
@@ -182,7 +225,7 @@ export function ScatterPlot() {
   <div className="bg-white border border-gray-300 rounded shadow-sm py-2 px-6">
       {plotData.length > 0 ? (
         <div>
-          <LegendFilter manufacturers={manufacturers} />
+          <LegendFilter manufacturers={visibleManufacturers} />
           <Plot
             data={plotData}
             layout={layout}
@@ -209,7 +252,7 @@ export function ScatterPlot() {
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-center h-96 text-gray-500">
+        <div className="flex items-center justify-center h-96" style={{ color: '#dc2626', fontWeight: 'bold', fontSize: '16px' }}>
           No data to display. Please adjust filters.
         </div>
       )}

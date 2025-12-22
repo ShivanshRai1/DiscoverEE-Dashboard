@@ -29,15 +29,29 @@ export function FilterPanel() {
   const partStatuses = getPartStatuses();
   const filteredCount = getFilteredDevices().length;
 
+  // Initialize with all options selected by default
+  const getInitialFilters = () => ({
+    ...filters,
+    manufacturers: filters.manufacturers?.length > 0 ? filters.manufacturers : manufacturers.slice(),
+    industryPackage: filters.industryPackage?.length > 0 ? filters.industryPackage : industryPackages.slice(),
+    discovereePackage: filters.discovereePackage?.length > 0 ? filters.discovereePackage : discovereePackages.slice(),
+    configuration: filters.configuration?.length > 0 ? filters.configuration : configurations.slice(),
+    material: filters.material?.length > 0 ? filters.material : materials.slice(),
+    mounting: filters.mounting?.length > 0 ? filters.mounting : mountingTypes.slice(),
+    partStatus: filters.partStatus?.length > 0 ? filters.partStatus : partStatuses.slice(),
+    qualification: filters.qualification?.length > 0 ? filters.qualification : ["Automotive", "Non-Automotive"],
+  });
+
   // Local UI state - user edits go here until they press Update
-  const [localFilters, setLocalFilters] = useState(filters);
+  const [localFilters, setLocalFilters] = useState(getInitialFilters);
   const debounceTimer = useRef(null);
 
-  // Ensure default 'all selected' behavior on first mount when store filters are empty
+  // Initialize defaults on mount
   const didInitDefaults = useRef(false);
   useEffect(() => {
     if (didInitDefaults.current) return;
-    // Only initialize defaults when store filters are empty (user hasn't customized yet)
+    
+    // Set defaults to store if store filters are empty
     const shouldInit = (
       (!filters.manufacturers || filters.manufacturers.length === 0) &&
       (!filters.industryPackage || filters.industryPackage.length === 0) &&
@@ -50,17 +64,15 @@ export function FilterPanel() {
     );
 
     if (shouldInit) {
-      setLocalFilters(prev => ({
-        ...prev,
-        manufacturers: manufacturers.slice(),
-        industryPackage: industryPackages.slice(),
-        discovereePackage: discovereePackages.slice(),
-        configuration: configurations.slice(),
-        material: materials.slice(),
-        mounting: mountingTypes.slice(),
-        partStatus: partStatuses.slice(),
-        qualification: ["Automotive", "Non-Automotive"],
-      }));
+      // Update store with defaults
+      setFilter('manufacturers', manufacturers.slice());
+      setFilter('industryPackage', industryPackages.slice());
+      setFilter('discovereePackage', discovereePackages.slice());
+      setFilter('configuration', configurations.slice());
+      setFilter('material', materials.slice());
+      setFilter('mounting', mountingTypes.slice());
+      setFilter('partStatus', partStatuses.slice());
+      setFilter('qualification', ["Automotive", "Non-Automotive"]);
     }
 
     didInitDefaults.current = true;
@@ -104,6 +116,7 @@ export function FilterPanel() {
       material: [],
       partStatus: [],
       configuration: [],
+      rdsonVgs: '',
       vdsMin: null,
       vdsMax: null,
       rdsonMin: null,
@@ -112,6 +125,27 @@ export function FilterPanel() {
       vthMax: null,
       searchTerm: ''
     });
+  };
+
+  // Helper to update range inputs with validation (auto-swap if min > max)
+  const updateRange = (minKey, maxKey, minVal, maxVal) => {
+    const min = minVal !== null && minVal !== '' ? parseFloat(minVal) : null;
+    const max = maxVal !== null && maxVal !== '' ? parseFloat(maxVal) : null;
+    
+    // Auto-swap if min > max
+    if (min !== null && max !== null && min > max) {
+      setLocalFilters(prev => ({
+        ...prev,
+        [minKey]: max,
+        [maxKey]: min
+      }));
+    } else {
+      setLocalFilters(prev => ({
+        ...prev,
+        [minKey]: min,
+        [maxKey]: max
+      }));
+    }
   };
 
   return (
@@ -205,6 +239,8 @@ export function FilterPanel() {
           <select
             className="w-full text-xs border border-gray-400 rounded px-2 py-1 bg-white hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             style={{ height: '30px' }}
+            value={localFilters.rdsonVgs || ''}
+            onChange={(e) => setLocalFilters(prev => ({ ...prev, rdsonVgs: e.target.value }))}
           >
             <option value="">All</option>
             <option value="12.3V - 17.49V">12.3V - 17.49V</option>
@@ -225,7 +261,7 @@ export function FilterPanel() {
               type="number"
               placeholder="Min"
               value={localFilters.vdsMin || ''}
-              onChange={(e) => setLocalFilters(prev => ({ ...prev, vdsMin: e.target.value ? parseFloat(e.target.value) : null }))}
+              onChange={(e) => updateRange('vdsMin', 'vdsMax', e.target.value, localFilters.vdsMax)}
               className="w-1/2 text-xs border border-gray-400 rounded px-2 py-1 hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               style={{ height: '30px' }}
             />
@@ -234,7 +270,7 @@ export function FilterPanel() {
               type="number"
               placeholder="Max"
               value={localFilters.vdsMax || ''}
-              onChange={(e) => setLocalFilters(prev => ({ ...prev, vdsMax: e.target.value ? parseFloat(e.target.value) : null }))}
+              onChange={(e) => updateRange('vdsMin', 'vdsMax', localFilters.vdsMin, e.target.value)}
               className="w-1/2 text-xs border border-gray-400 rounded px-2 py-1 hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               style={{ height: '30px' }}
             />
@@ -249,7 +285,7 @@ export function FilterPanel() {
               type="number"
               placeholder="Min"
               value={localFilters.vthMin || ''}
-              onChange={(e) => setLocalFilters(prev => ({ ...prev, vthMin: e.target.value ? parseFloat(e.target.value) : null }))}
+              onChange={(e) => updateRange('vthMin', 'vthMax', e.target.value, localFilters.vthMax)}
               className="w-1/2 text-xs border border-gray-400 rounded px-2 py-1 hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               style={{ height: '30px' }}
             />
@@ -258,7 +294,7 @@ export function FilterPanel() {
               type="number"
               placeholder="Max"
               value={localFilters.vthMax || ''}
-              onChange={(e) => setLocalFilters(prev => ({ ...prev, vthMax: e.target.value ? parseFloat(e.target.value) : null }))}
+              onChange={(e) => updateRange('vthMin', 'vthMax', localFilters.vthMin, e.target.value)}
               className="w-1/2 text-xs border border-gray-400 rounded px-2 py-1 hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               style={{ height: '30px' }}
             />
@@ -274,7 +310,7 @@ export function FilterPanel() {
               step="0.001"
               placeholder="0"
               value={localFilters.rdsonMin || ''}
-              onChange={(e) => setLocalFilters(prev => ({ ...prev, rdsonMin: e.target.value ? parseFloat(e.target.value) : null }))}
+              onChange={(e) => updateRange('rdsonMin', 'rdsonMax', e.target.value, localFilters.rdsonMax)}
               className="w-1/2 text-xs border border-gray-400 rounded px-2 py-1 hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               style={{ height: '30px' }}
             />
@@ -284,7 +320,7 @@ export function FilterPanel() {
               step="0.001"
               placeholder="1"
               value={localFilters.rdsonMax || ''}
-              onChange={(e) => setLocalFilters(prev => ({ ...prev, rdsonMax: e.target.value ? parseFloat(e.target.value) : null }))}
+              onChange={(e) => updateRange('rdsonMin', 'rdsonMax', localFilters.rdsonMin, e.target.value)}
               className="w-1/2 text-xs border border-gray-400 rounded px-2 py-1 hover:border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               style={{ height: '30px' }}
             />

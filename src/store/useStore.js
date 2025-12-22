@@ -17,6 +17,7 @@ export const useStore = create((set, get) => ({
     material: [], // Si / GaN
     partStatus: [], // Promotion / Non-Promotion
     configuration: [],
+    rdsonVgs: '', // VGS range for Rdson
     vdsMin: null,
     vdsMax: null,
     rdsonMin: null,
@@ -104,6 +105,7 @@ export const useStore = create((set, get) => ({
         material: [],
         partStatus: [],
         configuration: [],
+        rdsonVgs: '',
         vdsMin: null,
         vdsMax: null,
         rdsonMin: null,
@@ -162,23 +164,46 @@ export const useStore = create((set, get) => ({
       // Qualification filter (Automotive = auto="Yes", Non-Automotive = auto="No")
       if (filters.qualification.length > 0) {
         const isAutomotive = device.auto === 'Yes';
-        if (filters.qualification.includes('Automotive') && !isAutomotive) return false;
-        if (filters.qualification.includes('Non-Automotive') && isAutomotive) return false;
+        const hasAutomotiveFilter = filters.qualification.includes('Automotive');
+        const hasNonAutomotiveFilter = filters.qualification.includes('Non-Automotive');
+        
+        // If both are selected, include all devices
+        if (hasAutomotiveFilter && hasNonAutomotiveFilter) {
+          // Include all - do nothing
+        } else if (hasAutomotiveFilter && !isAutomotive) {
+          return false;
+        } else if (hasNonAutomotiveFilter && isAutomotive) {
+          return false;
+        }
       }
 
-      // Material filter
-      if (filters.material.length > 0 && (!device.material || !filters.material.includes(device.material))) {
+      // Material filter - only filter if device has material AND it's not in the selected list
+      if (filters.material.length > 0 && device.material && !filters.material.includes(device.material)) {
         return false;
       }
 
-      // Part Status filter
-      if (filters.partStatus.length > 0 && (!device.part_status || !filters.partStatus.includes(device.part_status))) {
+      // Part Status filter - only filter if device has part_status AND it's not in the selected list
+      if (filters.partStatus.length > 0 && device.part_status && !filters.partStatus.includes(device.part_status)) {
         return false;
       }
 
       // Configuration filter
       if (filters.configuration.length > 0 && !filters.configuration.includes(device.config)) {
         return false;
+      }
+
+      // RDSONVGs filter - filter by VGS range
+      if (filters.rdsonVgs && filters.rdsonVgs !== '') {
+        const vgsRange = filters.rdsonVgs;
+        const vgsMatch = vgsRange.match(/(\d+(?:\.\d+)?)\s*V\s*-\s*(\d+(?:\.\d+)?)\s*V/);
+        if (vgsMatch) {
+          const vgsMin = parseFloat(vgsMatch[1]);
+          const vgsMax = parseFloat(vgsMatch[2]);
+          const deviceVgs = device.vgs ? parseFloat(device.vgs) : null;
+          if (deviceVgs === null || deviceVgs < vgsMin || deviceVgs > vgsMax) {
+            return false;
+          }
+        }
       }
       
       // VDS range filter
@@ -189,14 +214,15 @@ export const useStore = create((set, get) => ({
         return false;
       }
       
-      // RDS(on) range filter - use minimum of rdson1-4max
+      // RDS(on) range filter - use minimum of rdson1-4max - strict inclusive boundaries
       const rdsonValues = [device.rdson1max, device.rdson2max, device.rdson3max, device.rdson4max].filter(v => v !== null);
       const minRdson = rdsonValues.length > 0 ? Math.min(...rdsonValues) : device.rdsontyp10vgs25ta;
       
-      if (filters.rdsonMin !== null && minRdson < filters.rdsonMin) {
+      // Strict comparison: minRdson must be within [rdsonMin, rdsonMax] inclusive with small epsilon for floating point
+      if (filters.rdsonMin !== null && minRdson < filters.rdsonMin - 1e-10) {
         return false;
       }
-      if (filters.rdsonMax !== null && minRdson > filters.rdsonMax) {
+      if (filters.rdsonMax !== null && minRdson > filters.rdsonMax + 1e-10) {
         return false;
       }
 

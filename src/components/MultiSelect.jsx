@@ -219,7 +219,13 @@ export default function MultiSelect({ options = [], selected = [], onChange, pla
           />
           <div style={styles.stickyHeader}>
             <label style={{ fontSize: 12, color: '#6b7280' }}>Options</label>
-            <button type="button" onClick={() => { setSearchTerm(''); }} style={{ fontSize: 12, color: '#2563eb', background: 'transparent', border: 'none', cursor: 'pointer' }}>unselect all</button>
+            <button 
+              type="button" 
+              onClick={() => { selectAll(); setSearchTerm(''); }} 
+              style={{ fontSize: 12, color: '#2563eb', background: 'transparent', border: 'none', cursor: 'pointer' }}
+            >
+              {selected.length === options.length ? 'unselect all' : 'select all'}
+            </button>
           </div>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {filteredOptions.map((opt, idx) => (
@@ -246,7 +252,7 @@ export default function MultiSelect({ options = [], selected = [], onChange, pla
                     type="checkbox"
                     checked={selected.some(s => String(s) === String(opt))}
                     onChange={() => toggleOption(opt)}
-                    style={{ width: 16, height: 16 }}
+                    style={{ width: 16, height: 16, accentColor: '#dc2626', cursor: 'pointer' }}
                     tabIndex={-1}
                   />
                   <span style={{ fontSize: 12, color: '#111827' }}>{opt}</span>
