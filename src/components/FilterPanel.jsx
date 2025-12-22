@@ -42,7 +42,7 @@ export function FilterPanel() {
     qualification: filters.qualification?.length > 0 ? filters.qualification : ["Automotive", "Non-Automotive"],
   });
 
-  // Local UI state - user edits go here until they press Update
+  // Local UI state - user edits go here until they are auto-applied with debouncing
   const [localFilters, setLocalFilters] = useState(getInitialFilters);
   const debounceTimer = useRef(null);
 
